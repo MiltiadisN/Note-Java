@@ -6,6 +6,24 @@ import java.util.List;
 public class NoteImpl implements NoteService {
     String connectionUrl = "jdbc:mysql://localhost:3306/notes_db_v1?serverTimezone=UTC";
 
+    public PreparedStatement prepare_stm(String query){
+
+        PreparedStatement ps = null;
+        try{
+            Connection conn = DriverManager.getConnection(connectionUrl,"user","user123");
+            if(query.startsWith("INSERT")){
+                return conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+            } else{
+                return conn.prepareStatement(query);
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return ps;
+
+    }
+
     @Override
     public List<Note> getNotes() {
         String sqlSelectAllNotes = "SELECT * FROM notes";
@@ -13,8 +31,7 @@ public class NoteImpl implements NoteService {
 
         try {
             // Establishing a database connection
-            Connection conn = DriverManager.getConnection(connectionUrl, "user", "user123");
-            PreparedStatement ps = conn.prepareStatement(sqlSelectAllNotes);
+            PreparedStatement ps = prepare_stm(sqlSelectAllNotes);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 // Fetching note data from the result set
@@ -37,8 +54,7 @@ public class NoteImpl implements NoteService {
         String sqlSelectFindId = "SELECT * FROM notes WHERE id=" + id;
         try {
             // Establishing a database connection
-            Connection conn = DriverManager.getConnection(connectionUrl, "user", "user123");
-            PreparedStatement ps = conn.prepareStatement(sqlSelectFindId);
+            PreparedStatement ps = prepare_stm(sqlSelectFindId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 // Fetching note data from the result set
@@ -58,8 +74,7 @@ public class NoteImpl implements NoteService {
         String sqlAddNote = "INSERT INTO notes (title, text) VALUES (?,?)";
         try {
             // Establishing a database connection
-            Connection conn = DriverManager.getConnection(connectionUrl, "user", "user123");
-            PreparedStatement ps = conn.prepareStatement(sqlAddNote, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = prepare_stm(sqlAddNote);
             ps.setString(1, title);
             ps.setString(2, text);
             ps.executeUpdate();
@@ -83,8 +98,7 @@ public class NoteImpl implements NoteService {
 
         try {
             // Establishing a database connection
-            Connection conn = DriverManager.getConnection(connectionUrl, "user", "user123");
-            PreparedStatement ps = conn.prepareStatement(sqlEditNote);
+            PreparedStatement ps = prepare_stm(sqlEditNote);
             ps.setString(1, title);
             ps.setString(2, text);
             ps.setString(3, String.valueOf(id));
@@ -104,8 +118,7 @@ public class NoteImpl implements NoteService {
         String sqlDeleteNoteWithID = "DELETE from notes WHERE id= ?";
         try {
             // Establishing a database connection
-            Connection conn = DriverManager.getConnection(connectionUrl, "user", "user123");
-            PreparedStatement ps = conn.prepareStatement(sqlDeleteNoteWithID);
+            PreparedStatement ps = prepare_stm(sqlDeleteNoteWithID);
             ps.setInt(1, id);
             int rowsAffected = ps.executeUpdate();
             if (rowsAffected > 0) {
